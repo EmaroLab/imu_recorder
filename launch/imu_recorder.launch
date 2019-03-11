@@ -2,14 +2,12 @@
   <!--<arg name="recording_path"  default=""/>-->
 
   <node pkg="imu_recorder" type="imu_recorder.py" name="imu_recorder_giver" output="screen">
-    <remap from="/imu_data" to="/imu_data_package"/>
+    <remap from="/imu_data" to="/G_Watch_R_5567/imu_data"/>
     <param name="file_name" type="string" value="Giver" />
-    <!--<param name="file_path" type="string" value="" />-->
   </node>
 
   <node pkg="imu_recorder" type="imu_recorder.py" name="imu_recorder_receiver" output="screen">
-    <remap from="/imu_data" to="/imu_data_package"/>
+    <remap from="/imu_data" to="/G_Watch_R_5567/imu_data"/>
     <param name="file_name" type="string" value="Receiver" />
-    <!--<param name="file_path" type="string" value="" />-->
   </node>
 </launch>

@@ -2,8 +2,8 @@
 
 import rospy
 import os
-from mqtt_ros_bridge.msg import *
 import numpy as np
+from sensor_msgs.msg import Imu
 
 import time
 import json
@@ -17,8 +17,7 @@ class imuRecorder(object):
         self.start_time = time.time()
         self.data = []
         
-        self.last_acc_time = -1
-        self.last_gyro_time = -1
+        self.prev_time = -1
         self.threshold = 25
 
     def set_file_name(self, name, path):
@@ -53,44 +52,29 @@ class imuRecorder(object):
         print self.file_name + "-" + str(len(recorder.data)) + " samples recorded"
     
     def check_time(self, message):
-        if (self.last_acc_time != -1):
-            diff_acc = message.linear_acceleration[0].time.data - self.last_acc_time
-            diff_gyro = message.angular_velocity[0].time.data -self.last_gyro_time
-            if (diff_acc > self.threshold):
-                print self.file_name + "-" + "ATTENTION: delay on linear acceleration" + str(diff_acc) + " ms"
+        curr_time = message.header.stamp.secs + message.header.stamp.nsecs/1e9
+        if (self.prev_time != -1):            
+            diff = (curr_time - self.prev_time)/1e3
 
-            if (diff_gyro > self.threshold):
-                print self.file_name + "-" + "ATTENTION: delay on angular velocity " + str(diff_gyro) + " ms"
+            if (diff > self.threshold):
+                print self.file_name + "-" + "ATTENTION: delay on IMU data" + str(diff) + " ms"
 
-        self.last_acc_time = message.linear_acceleration[-1].time.data
-        self.last_gyro_time = message.angular_velocity[-1].time.data
+        self.prev_time = curr_time
 
     def to_dict(self, msg):
-        n_acc = len(msg.linear_acceleration)
-        n_vel = len(msg.angular_velocity)
         imu_dict = {}
-        imu_dict['linear_acceleration'] = []
-        imu_dict['angular_velocity'] = []
-        imu_dict['timestamp'] = time.time() - self.start_time
-        for i in range(n_acc):
-            a_vector_dict = {}        
-
-            a_vector_dict['x'] = msg.linear_acceleration[i].vector.x
-            a_vector_dict['y'] = msg.linear_acceleration[i].vector.y
-            a_vector_dict['z'] = msg.linear_acceleration[i].vector.z
-            a_vector_dict['t'] = msg.linear_acceleration[i].time.data
-            
-            imu_dict['linear_acceleration'].append(a_vector_dict)
-
-        for i in range(n_vel):
-            v_vector_dict = {}
-
-            v_vector_dict['x'] = msg.angular_velocity[i].vector.x
-            v_vector_dict['y'] = msg.angular_velocity[i].vector.y
-            v_vector_dict['z'] = msg.angular_velocity[i].vector.z
-            v_vector_dict['t'] = msg.angular_velocity[i].time.data
-            
-            imu_dict['angular_velocity'].append(v_vector_dict)
+        
+        imu_dict['linear_acceleration_x'] = msg.linear_acceleration.x
+        imu_dict['linear_acceleration_y'] = msg.linear_acceleration.y
+        imu_dict['linear_acceleration_z'] = msg.linear_acceleration.z
+        
+        imu_dict['angular_velocity_x'] = msg.angular_velocity.x
+        imu_dict['angular_velocity_y'] = msg.angular_velocity.y
+        imu_dict['angular_velocity_z'] = msg.angular_velocity.z 
+        
+        imu_dict['stamp_secs'] = msg.header.stamp.secs
+        imu_dict['stamp_nsecs'] = msg.header.stamp.nsecs
+        imu_dict['stamp_android'] = msg.header.frame_id
 
 
         return imu_dict
@@ -108,9 +92,9 @@ def main():
 
     recorder.set_file_name(file_name, file_path)
 
-    rospy.Subscriber("/imu_data", ImuPackage, callback)
+    rospy.Subscriber("/imu_data", Imu, callback)
     
-    r = rospy.Rate(10)
+    r = rospy.Rate(100)
     while True:
         try:
             r.sleep()
