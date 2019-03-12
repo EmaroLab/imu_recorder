@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 
 import rospy
 import os
@@ -88,7 +88,7 @@ def main():
     rospy.init_node('imu_recorder', disable_signals=True)
 
     file_name = rospy.get_param('~file_name','new')
-    file_path = rospy.get_param('~file_path','./')
+    file_path = rospy.get_param('/handover_experiment/file_path','./')
 
     recorder.set_file_name(file_name, file_path)
 
@@ -101,6 +101,7 @@ def main():
         except KeyboardInterrupt:            
             recorder.save_file()
             break
+            
 
 if __name__ == '__main__':
     try:
