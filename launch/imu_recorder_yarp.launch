@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="imu_recorder" type="imu_recorder_yarp.py" name="imu_recorder_yarp" output="screen">
+    <remap from="/imu_data" to="/G_Watch_R_5567/imu_data"/>
+    <param name="file_name" type="string" value="hand_imu" />
+    <param name="file_path" type="string" value="" />
+    <param name="stop_letter" type="string" value="0 d">
+    <param name="reset_letter" type="string" value="0 c">
+  </node>
+</launch>
