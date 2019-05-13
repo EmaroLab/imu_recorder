@@ -16,7 +16,7 @@ class imuRecorder(object):
         self.file_path = file_path
         self.data = []
 
-        self.recording = True
+        self.recording = False
         self.prev_time = -1
         self.file_counter = 0
 
